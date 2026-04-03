@@ -19,7 +19,7 @@ Next.js offers an option for [static site generation](https://nextjs.org/docs/pa
 
 Next Static Utils aims to provide workarounds and utilities to address some of these issues and make hosting your next.js site statically **anywhere** you darn well please a bit more enjoyable. 
 
-Starting with support for AWS S3 + Cloudfront, but can presumably add other providers relatively easily.
+Starting with support for AWS S3 + Cloudfront and GitHub Pages, but can presumably add other providers relatively easily.
 
 # Set Up
 
@@ -29,7 +29,7 @@ Starting with support for AWS S3 + Cloudfront, but can presumably add other prov
 pnpm install next-static-utils
 ...
 # Generates edge function for re-routing to a fallback page for dynamic params
-pnpm next-static-utils generate [cloudfront|serve]
+pnpm next-static-utils generate [cloudfront|serve|ghpages]
 ```
 
 ### Usage
@@ -90,6 +90,79 @@ Instead of using `useParams` which is not supported in SSG mode, the params are 
 
 The CLI also generates a cloudfront function to properly handle re-routing at an edge function level in AWS.
 
+## GitHub Pages
+
+To deploy your Next.js static site to GitHub Pages with dynamic route support:
+
+### 1. Generate the GitHub Pages config
+
+After building your Next.js app, run:
+
+```bash
+# Build your Next.js app first
+next build
+
+# Generate 404.html and .nojekyll in the out/ directory
+next-static-utils generate ghpages
+```
+
+If your site is hosted at a subpath (e.g. `https://username.github.io/my-repo/`), pass the base path:
+
+```bash
+next-static-utils generate ghpages /my-repo
+```
+
+### 2. Recommended build script
+
+```json
+{
+  "scripts": {
+    "build": "next-static-utils generate && next build && next-static-utils generate ghpages"
+  }
+}
+```
+
+### 3. How it works
+
+- A `404.html` page is generated that intercepts requests to dynamic routes
+- When a user visits a dynamic URL (e.g. `/users/123`), GitHub Pages serves the 404.html
+- The 404.html matches the URL against known dynamic routes and redirects to the fallback page
+- The `useDynamicParams` hook picks up the original URL and extracts the correct parameters
+- The browser URL is restored to the original path via `history.replaceState`
+- A `.nojekyll` file is created to prevent GitHub Pages from ignoring the `_next` directory
+
+### 4. Deploy with GitHub Actions
+
+Create a `.github/workflows/deploy.yml` file:
+
+```yaml
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install
+      - run: npm run build
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: out
+      - uses: actions/deploy-pages@v4
+```
+
 ## Other Cool / Related Projects
 
 - [next-nginx-routes](https://github.com/geops/next-nginx-routes) helps host your next.js static site using nginx routes
@@ -102,4 +175,4 @@ The CLI also generates a cloudfront function to properly handle re-routing at an
 - [ ] terraform script to deploy via cli
 - [ ] S3 static hosting rewrites support
 - [ ] Move to using routes.manifest instead of iterating over app directory?
-- [ ] Github pages support?
+- [x] Github pages support

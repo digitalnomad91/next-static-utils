@@ -5,7 +5,7 @@ const command = process.argv[2];
 switch (command) {
   case 'help':
     console.log(
-      'Run next-server-utils generate to generate dynamic fallback routes.\n\nYou can optionally append a config type to output (cloudfront|serve) currently supported.'
+      'Run next-static-utils generate to generate dynamic fallback routes.\n\nYou can optionally append a config type to output (cloudfront|serve|ghpages) currently supported.\n\nFor GitHub Pages:\n  next-static-utils generate ghpages [/optional-base-path]'
     );
     break;
   case 'generate':
