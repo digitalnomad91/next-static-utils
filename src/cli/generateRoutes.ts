@@ -114,7 +114,7 @@ const getGithubPages404Template = (
   rewrites: { source: string; destination: string }[],
   basePath: string
 ): string => {
-  const rewritesJson = JSON.stringify(rewrites, null, 6);
+  const rewritesJson = JSON.stringify(rewrites, null, 4);
 
   return `<!DOCTYPE html>
 <html>

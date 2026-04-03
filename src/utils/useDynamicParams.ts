@@ -30,7 +30,8 @@ export const useDynamicParams = (): Record<string, string> => {
         effectivePath = redirectPath;
 
         // Restore the original URL in the browser address bar
-        if (redirectUrl) {
+        // Validate that the URL is a safe same-origin relative path
+        if (redirectUrl && redirectUrl.startsWith('/') && !redirectUrl.startsWith('//')) {
           window.history.replaceState(null, '', redirectUrl);
         }
       }
